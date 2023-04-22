@@ -23,8 +23,7 @@ Vector::Vector(const Value *rawArray, const size_t size, float coefficient)
 }
 
 Vector::Vector(const Vector &other)
-        : _size(other.size()),
-          _multiplicativeCoef(other._multiplicativeCoef) {
+        : _size(other.size()), _multiplicativeCoef(other._multiplicativeCoef) {
     _capacity = std::min(other.capacity(), _size * (size_t) _multiplicativeCoef);
     _data = new Value[_capacity];
     for (size_t i = 0; i < _size; ++i) {
@@ -77,8 +76,6 @@ Vector &Vector::operator=(Vector &&other) noexcept {
 }
 
 Vector::~Vector() {
-    _capacity = 0;
-    _size = 0;
     delete[] _data;
 }
 
@@ -148,9 +145,9 @@ const Value &Vector::operator[](size_t index) const {
 }
 
 long long Vector::find(const Value &value) const {
-    for (size_t i = 0; i < _size; ++i) {
+    for (long long i = 0; i < _size; ++i) {
         if (_data[i] == value) {
-            return (long long) i;
+            return i;
         }
     }
     return -1;
@@ -205,6 +202,7 @@ void Vector::erase(size_t pos, size_t count) {
     for (size_t i = pos; i < _size - count; ++i) {
         _data[i] = _data[i + count];
     }
+
     _size -= count;
 }
 
