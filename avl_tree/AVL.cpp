@@ -65,6 +65,63 @@ void AVLTree::Node::insert(const Key &key, const Value &value) {
     balance();
 }
 
+void AVLTree::Node::erase(const Key &key) {
+    if (key < keyValuePair.first) {
+        if (left != nullptr) {
+            left->erase(key);
+        }
+    } else if (key > keyValuePair.first) {
+        if (right != nullptr) {
+            right->erase(key);
+        }
+    } else {
+        if (left == nullptr && right == nullptr) {
+            if (parent != nullptr) {
+                if (parent->left == this) {
+                    parent->left = nullptr;
+                } else {
+                    parent->right = nullptr;
+                }
+            }
+            delete this;
+        } else if (left == nullptr) {
+            if (parent != nullptr) {
+                if (parent->left == this) {
+                    parent->left = right;
+                } else {
+                    parent->right = right;
+                }
+            }
+            right->parent = parent;
+            delete this;
+        } else if (right == nullptr) {
+            if (parent != nullptr) {
+                if (parent->left == this) {
+                    parent->left = left;
+                } else {
+                    parent->right = left;
+                }
+            }
+            left->parent = parent;
+            delete this;
+        } else {
+            Node *next = right;
+            while (next->left != nullptr) {
+                next = next->left;
+            }
+            keyValuePair = next->keyValuePair;
+            next->erase(next->keyValuePair.first);
+        }
+    }
+    if (parent != nullptr) {
+        parent->m_height = 1 + std::max(
+                parent->left == nullptr ? 0 : parent->left->m_height,
+                parent->right == nullptr ? 0 : parent->right->m_height
+        );
+        parent->balance();
+    }
+}
+
 bool AVLTree::Node::operator==(const AVLTree::Node &other) const {
     return keyValuePair == other.keyValuePair && parent == other.parent && left == other.left &&
            right == other.right;
@@ -83,8 +140,8 @@ void AVLTree::Node::output_node(const std::string &prefix, const AVLTree::Node *
 }
 
 void AVLTree::Node::small_left_rotation() {
-    Node* new_root = right;
-    Node* new_left = new Node(keyValuePair.first, keyValuePair.second, this, left, new_root->left);
+    Node *new_root = right;
+    Node *new_left = new Node(keyValuePair.first, keyValuePair.second, this, left, new_root->left);
     new_root->left = new_left;
     if (new_left->left != nullptr) {
         new_left->left->parent = new_left;
@@ -107,8 +164,8 @@ void AVLTree::Node::small_left_rotation() {
 }
 
 void AVLTree::Node::small_right_rotation() {
-    Node* new_root = left;
-    Node* new_right = new Node(keyValuePair.first, keyValuePair.second, this, new_root->right, right);
+    Node *new_root = left;
+    Node *new_right = new Node(keyValuePair.first, keyValuePair.second, this, new_root->right, right);
     new_root->right = new_right;
     if (new_right->right != nullptr) {
         new_right->right->parent = new_right;
@@ -349,70 +406,10 @@ void AVLTree::insert(const Key &key, const Value &value) {
 }
 
 
-void AVLTree::deleteNode(AVLTree::Node *node) {
-    if (node->left == nullptr && node->right == nullptr) {
-        if (node->parent == nullptr) {
-            _root = nullptr;
-        } else if (node->parent->left == node) {
-            node->parent->left = nullptr;
-        } else {
-            node->parent->right = nullptr;
-        }
-        delete node;
-    } else if (node->left == nullptr) {
-        if (node->parent == nullptr) {
-            _root = node->right;
-            _root->parent = nullptr;
-        } else if (node->parent->left == node) {
-            node->parent->left = node->right;
-            node->right->parent = node->parent;
-        } else {
-            node->parent->right = node->right;
-            node->right->parent = node->parent;
-        }
-        delete node;
-    } else if (node->right == nullptr) {
-        if (node->parent == nullptr) {
-            _root = node->left;
-            _root->parent = nullptr;
-        } else if (node->parent->left == node) {
-            node->parent->left = node->left;
-            node->left->parent = node->parent;
-        } else {
-            node->parent->right = node->left;
-            node->left->parent = node->parent;
-        }
-        delete node;
-    } else {
-        Node *tmp = node->right;
-        while (tmp->left != nullptr) {
-            tmp = tmp->left;
-        }
-        node->keyValuePair = tmp->keyValuePair;
-        deleteNode(tmp);
-    }
-    --_size;
-}
-
-
 void AVLTree::erase(const Key &key) {
-    bool flag = true;
-    while (flag) {
-        flag = false;
-        Node *node = _root;
-        while (node != nullptr) {
-            if (key < node->keyValuePair.first) {
-                node = node->left;
-            } else if (key > node->keyValuePair.first) {
-                node = node->right;
-            } else {
-                flag = true;
-                break;
-            }
-        }
-        if (flag) {
-            deleteNode(node);
-        }
+    while (this->find(key) != this->end()) {
+        _size--;
+        _root->erase(key);
     }
 }
 

@@ -37,6 +37,8 @@ class AVLTree {
 
         void balance();
 
+        void erase(const Key &key);
+
         std::pair<Key, Value> keyValuePair;
         Node *parent = nullptr;
         Node *left = nullptr;
@@ -123,8 +125,6 @@ public:
 
     // вставить элемент с ключем key и значением value
     void insert(const Key &key, const Value &value);
-
-    void deleteNode(Node *node);
 
     // удалить все элементы с ключем key
     void erase(const Key &key);

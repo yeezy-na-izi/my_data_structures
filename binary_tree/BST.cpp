@@ -25,12 +25,90 @@ BinarySearchTree::Node::Node(const BinarySearchTree::Node &other) {
 void BinarySearchTree::Node::output_node(const std::string &prefix, const BinarySearchTree::Node *node, bool isLeft) {
     if (node != nullptr) {
         std::cout << prefix;
-        std::cout << (isLeft ? "├──" : "└──" );
+        std::cout << (isLeft ? "├──" : "└──");
 
         std::cout << node->keyValuePair.first << std::endl;
 
         output_node(prefix + (isLeft ? "│   " : "    "), node->left, node->right != nullptr);
         output_node(prefix + (isLeft ? "│   " : "    "), node->right, false);
+    }
+}
+
+void BinarySearchTree::Node::insert(const Key &key, const Value &value) {
+    if (key < keyValuePair.first) {
+        if (left == nullptr) {
+            left = new Node(key, value, this);
+        } else {
+            left->insert(key, value);
+        }
+    } else if (key > keyValuePair.first) {
+        if (right == nullptr) {
+            right = new Node(key, value, this);
+        } else {
+            right->insert(key, value);
+        }
+    } else if (value < keyValuePair.first) {
+        if (left == nullptr) {
+            left = new Node(key, value, this);
+        } else {
+            left->insert(key, value);
+        }
+    } else {
+        if (right == nullptr) {
+            right = new Node(key, value, this);
+        } else {
+            right->insert(key, value);
+        }
+    }
+}
+
+void BinarySearchTree::Node::erase(const Key &key) {
+    if (key < keyValuePair.first) {
+        if (left != nullptr) {
+            left->erase(key);
+        }
+    } else if (key > keyValuePair.first) {
+        if (right != nullptr) {
+            right->erase(key);
+        }
+    } else {
+        if (left == nullptr && right == nullptr) {
+            if (parent != nullptr) {
+                if (parent->left == this) {
+                    parent->left = nullptr;
+                } else {
+                    parent->right = nullptr;
+                }
+            }
+            delete this;
+        } else if (left == nullptr) {
+            if (parent != nullptr) {
+                if (parent->left == this) {
+                    parent->left = right;
+                } else {
+                    parent->right = right;
+                }
+            }
+            right->parent = parent;
+            delete this;
+        } else if (right == nullptr) {
+            if (parent != nullptr) {
+                if (parent->left == this) {
+                    parent->left = left;
+                } else {
+                    parent->right = left;
+                }
+            }
+            left->parent = parent;
+            delete this;
+        } else {
+            Node *next = right;
+            while (next->left != nullptr) {
+                next = next->left;
+            }
+            keyValuePair = next->keyValuePair;
+            next->erase(next->keyValuePair.first);
+        }
     }
 }
 
@@ -230,102 +308,17 @@ void BinarySearchTree::insert(const Key &key, const Value &value) {
     _size++;
     if (_root == nullptr) {
         _root = new Node(key, value);
-        return;
-    }
-    Node *node = _root;
-    while (true) {
-        if (key < node->keyValuePair.first) {
-            if (node->left == nullptr) {
-                node->left = new Node(key, value, node);
-                return;
-            }
-            node = node->left;
-        } else if (key > node->keyValuePair.first) {
-            if (node->right == nullptr) {
-                node->right = new Node(key, value, node);
-                return;
-            }
-            node = node->right;
-        } else if (value < node->keyValuePair.second) {
-            if (node->left == nullptr) {
-                node->left = new Node(key, value, node);
-                return;
-            }
-            node = node->left;
-        } else {
-            if (node->right == nullptr) {
-                node->right = new Node(key, value, node);
-                return;
-            }
-            node = node->right;
-        }
-    }
-}
-
-void BinarySearchTree::deleteNode(BinarySearchTree::Node *node) {
-    if (node->left == nullptr && node->right == nullptr) {
-        if (node->parent == nullptr) {
-            _root = nullptr;
-        } else if (node->parent->left == node) {
-            node->parent->left = nullptr;
-        } else {
-            node->parent->right = nullptr;
-        }
-        delete node;
-    } else if (node->left == nullptr) {
-        if (node->parent == nullptr) {
-            _root = node->right;
-            _root->parent = nullptr;
-        } else if (node->parent->left == node) {
-            node->parent->left = node->right;
-            node->right->parent = node->parent;
-        } else {
-            node->parent->right = node->right;
-            node->right->parent = node->parent;
-        }
-        delete node;
-    } else if (node->right == nullptr) {
-        if (node->parent == nullptr) {
-            _root = node->left;
-            _root->parent = nullptr;
-        } else if (node->parent->left == node) {
-            node->parent->left = node->left;
-            node->left->parent = node->parent;
-        } else {
-            node->parent->right = node->left;
-            node->left->parent = node->parent;
-        }
-        delete node;
     } else {
-        Node *tmp = node->right;
-        while (tmp->left != nullptr) {
-            tmp = tmp->left;
-        }
-        node->keyValuePair = tmp->keyValuePair;
-        deleteNode(tmp);
+        _root->insert(key, value);
     }
-    --_size;
+
 }
 
 
 void BinarySearchTree::erase(const Key &key) {
-    bool flag = true;
-    while (flag) {
-        flag = false;
-        Node *node = _root;
-        while (node != nullptr) {
-            if (key < node->keyValuePair.first) {
-                node = node->left;
-            } else if (key > node->keyValuePair.first) {
-                node = node->right;
-            } else {
-                flag = true;
-                break;
-            }
-        }
-        if (flag) {
-            deleteNode(node);
-        }
+    while (this->find(key) != this->end()) {
+        _size--;
+        _root->erase(key);
     }
 }
 
