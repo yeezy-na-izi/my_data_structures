@@ -9,7 +9,7 @@ using Value = double;
 /*!
     Имплементация бинарного дерева поиска
 */
-class BinarySearchTree {
+class AVLTree {
     struct Node {
         Node(Key key,
              Value value,
@@ -19,32 +19,47 @@ class BinarySearchTree {
 
         Node(const Node &other);
 
+        ~Node();
+
+        void insert(const Key &key, const Value &value);
+
         bool operator==(const Node &other) const;
 
-        void output_node(const std::string &prefix, const Node *node, bool isLeft);
+        void output_node(const std::string& prefix, const Node* node, bool isLeft);
+
+        void small_left_rotation();
+
+        void small_right_rotation();
+
+        void big_left_rotation();
+
+        void big_right_rotation();
+
+        void balance();
 
         std::pair<Key, Value> keyValuePair;
         Node *parent = nullptr;
         Node *left = nullptr;
         Node *right = nullptr;
+        int m_height = 1;
     };
 
 public:
     //! Конструктор по умолчанию
-    BinarySearchTree() = default;
+    AVLTree() = default;
 
     //! Копирование
-    explicit BinarySearchTree(const BinarySearchTree &other);
+    explicit AVLTree(const AVLTree &other);
 
-    BinarySearchTree &operator=(const BinarySearchTree &other);
+    AVLTree &operator=(const AVLTree &other);
 
     //! Перемещение
-    explicit BinarySearchTree(BinarySearchTree &&other) noexcept;
+    explicit AVLTree(AVLTree &&other) noexcept;
 
-    BinarySearchTree &operator=(BinarySearchTree &&other) noexcept;
+    AVLTree &operator=(AVLTree &&other) noexcept;
 
     //! Деструктор
-    ~BinarySearchTree();
+    ~AVLTree();
 
     /*!
         Итератор бинарного дерева поиска
