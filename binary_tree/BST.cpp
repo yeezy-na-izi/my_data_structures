@@ -316,7 +316,7 @@ void BinarySearchTree::insert(const Key &key, const Value &value) {
 
 
 void BinarySearchTree::erase(const Key &key) {
-    while (this->find(key) != this->end()) {
+    while (this->find(key)->first == key) {
         _size--;
         _root->erase(key);
     }
@@ -333,6 +333,9 @@ BinarySearchTree::Iterator BinarySearchTree::find(const Key &key) {
             break;
         }
     }
+    if (node == nullptr) {
+        return end();
+    }
     return Iterator(node);
 }
 
@@ -346,6 +349,9 @@ BinarySearchTree::ConstIterator BinarySearchTree::find(const Key &key) const {
         } else {
             break;
         }
+    }
+    if (node == nullptr) {
+        return cend();
     }
     return ConstIterator(node);
 }

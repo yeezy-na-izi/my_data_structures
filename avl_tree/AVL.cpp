@@ -24,12 +24,8 @@ AVLTree::Node::Node(const AVLTree::Node &other) {
 }
 
 AVLTree::Node::~Node() {
-    if (left != nullptr) {
-        delete left;
-    }
-    if (right != nullptr) {
-        delete right;
-    }
+    delete left;
+    delete right;
 }
 
 void AVLTree::Node::insert(const Key &key, const Value &value) {
@@ -66,6 +62,7 @@ void AVLTree::Node::insert(const Key &key, const Value &value) {
 }
 
 void AVLTree::Node::erase(const Key &key) {
+    bool flag = true;
     if (key < keyValuePair.first) {
         if (left != nullptr) {
             left->erase(key);
@@ -75,6 +72,7 @@ void AVLTree::Node::erase(const Key &key) {
             right->erase(key);
         }
     } else {
+        flag = false;
         if (left == nullptr && right == nullptr) {
             if (parent != nullptr) {
                 if (parent->left == this) {
@@ -113,12 +111,12 @@ void AVLTree::Node::erase(const Key &key) {
             next->erase(next->keyValuePair.first);
         }
     }
-    if (parent != nullptr) {
-        parent->m_height = 1 + std::max(
-                parent->left == nullptr ? 0 : parent->left->m_height,
-                parent->right == nullptr ? 0 : parent->right->m_height
+    if (flag) {
+        m_height = 1 + std::max(
+                left == nullptr ? 0 : left->m_height,
+                right == nullptr ? 0 : right->m_height
         );
-        parent->balance();
+        balance();
     }
 }
 
@@ -407,7 +405,7 @@ void AVLTree::insert(const Key &key, const Value &value) {
 
 
 void AVLTree::erase(const Key &key) {
-    while (this->find(key) != this->end()) {
+    while (this->find(key)->first == key) {
         _size--;
         _root->erase(key);
     }
@@ -423,6 +421,9 @@ AVLTree::Iterator AVLTree::find(const Key &key) {
         } else {
             break;
         }
+    }
+    if (node == nullptr) {
+        return end();
     }
     return Iterator(node);
 }
@@ -569,4 +570,19 @@ size_t AVLTree::size() const {
 
 void AVLTree::output_tree() {
     _root->output_node("", _root, false);
+}
+
+
+int main() {
+    AVLTree tree;
+    tree.insert(4, 1);
+    tree.insert(2, 1);
+    tree.insert(6, 1);
+    tree.insert(8, 1);
+
+    tree.output_tree();
+
+    tree.erase(2);
+
+    tree.output_tree();
 }
