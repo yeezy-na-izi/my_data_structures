@@ -122,6 +122,7 @@ BinarySearchTree::BinarySearchTree(const BinarySearchTree &other) {
     } else {
         _root = new Node(*other._root);
     }
+    _size = other._size;
 }
 
 
@@ -135,12 +136,15 @@ BinarySearchTree &BinarySearchTree::operator=(const BinarySearchTree &other) {
     } else {
         _root = new Node(*other._root);
     }
+    _size = other._size;
     return *this;
 }
 
 BinarySearchTree::BinarySearchTree(BinarySearchTree &&other) noexcept {
     _root = other._root;
     other._root = nullptr;
+    _size = other._size;
+    other._size = 0;
 }
 
 BinarySearchTree &BinarySearchTree::operator=(BinarySearchTree &&other) noexcept {
@@ -150,6 +154,8 @@ BinarySearchTree &BinarySearchTree::operator=(BinarySearchTree &&other) noexcept
     this->~BinarySearchTree();
     _root = other._root;
     other._root = nullptr;
+    _size = other._size;
+    other._size = 0;
     return *this;
 }
 
@@ -316,9 +322,27 @@ void BinarySearchTree::insert(const Key &key, const Value &value) {
 
 
 void BinarySearchTree::erase(const Key &key) {
-    while (this->find(key)->first == key) {
+    Iterator it = this->find(key);
+    Iterator root_it(_root);
+    while (_root != nullptr && it->first == key) {
         _size--;
-        _root->erase(key);
+        if (it == root_it && (_root->left == nullptr || _root->right == nullptr)) {
+            Node *to_del = _root;
+            if (_root->left != nullptr) {
+                _root = _root->left;
+                _root->parent = nullptr;
+            } else if (_root->right != nullptr) {
+                _root = _root->right;
+                _root->parent = nullptr;
+            } else {
+                _root = nullptr;
+            }
+            root_it = Iterator(_root);
+            delete to_del;
+        } else {
+            _root->erase(key);
+        }
+        it = this->find(key);
     }
 }
 
@@ -376,6 +400,7 @@ std::pair<BinarySearchTree::Iterator, BinarySearchTree::Iterator> BinarySearchTr
         it_end++;
         it_tmp++;
     }
+    it_end++;
     return std::make_pair(it_start, it_end);
 }
 
@@ -400,13 +425,13 @@ BinarySearchTree::equalRange(const Key &key) const {
         it_end++;
         it_tmp++;
     }
-    it_tmp++;
+    it_end++;
     return std::make_pair(it_start, it_end);
 }
 
 BinarySearchTree::ConstIterator BinarySearchTree::min(const Key &key) const {
     ConstIterator it = find(key);
-    if (it == cend()) {
+    if (it == cbegin()) {
         return it;
     }
     ConstIterator it_tmp = it;

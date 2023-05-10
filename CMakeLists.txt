@@ -8,8 +8,9 @@ add_executable(
         hui
         avl_tree/AVL.cpp
         avl_tree/AVL.h
-#        binary_tree/BST.cpp
-#        binary_tree/BST.h
+        binary_tree/BST.cpp
+        binary_tree/BST.h
+        lab/main.cpp
 #        stack/Stack.cpp
 #        stack/Stack.h
 #        stack/LStack.cpp

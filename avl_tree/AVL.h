@@ -19,13 +19,11 @@ class AVLTree {
 
         Node(const Node &other);
 
-        ~Node();
-
         void insert(const Key &key, const Value &value);
 
         bool operator==(const Node &other) const;
 
-        void output_node(const std::string& prefix, const Node* node, bool isLeft);
+        void output_node(const std::string &prefix, const Node *node, bool isLeft);
 
         void small_left_rotation();
 
@@ -38,6 +36,8 @@ class AVLTree {
         void balance();
 
         void erase(const Key &key);
+
+        void update_height();
 
         std::pair<Key, Value> keyValuePair;
         Node *parent = nullptr;

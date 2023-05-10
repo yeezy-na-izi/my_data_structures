@@ -2,9 +2,11 @@
 
 #include <utility>
 #include <cstdint>
+#include <iostream>
 
 using Key = uint32_t;
 using Value = double;
+
 
 /*!
     Имплементация бинарного дерева поиска

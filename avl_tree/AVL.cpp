@@ -4,7 +4,8 @@
 
 
 AVLTree::Node::Node(Key key, Value value, Node *parent, Node *left, Node *right)
-        : keyValuePair(key, value), parent(parent), left(left), right(right) {}
+        : keyValuePair(key, value), parent(parent), left(left), right(right),
+          m_height(1 + std::max(left == nullptr ? 0 : left->m_height, right == nullptr ? 0 : right->m_height)) {}
 
 
 AVLTree::Node::Node(const AVLTree::Node &other) {
@@ -21,11 +22,6 @@ AVLTree::Node::Node(const AVLTree::Node &other) {
     } else {
         right = new Node(*other.right);
     }
-}
-
-AVLTree::Node::~Node() {
-    delete left;
-    delete right;
 }
 
 void AVLTree::Node::insert(const Key &key, const Value &value) {
@@ -54,15 +50,10 @@ void AVLTree::Node::insert(const Key &key, const Value &value) {
             right->insert(key, value);
         }
     }
-    m_height = 1 + std::max(
-            left == nullptr ? 0 : left->m_height,
-            right == nullptr ? 0 : right->m_height
-    );
     balance();
 }
 
 void AVLTree::Node::erase(const Key &key) {
-    bool flag = true;
     if (key < keyValuePair.first) {
         if (left != nullptr) {
             left->erase(key);
@@ -72,7 +63,6 @@ void AVLTree::Node::erase(const Key &key) {
             right->erase(key);
         }
     } else {
-        flag = false;
         if (left == nullptr && right == nullptr) {
             if (parent != nullptr) {
                 if (parent->left == this) {
@@ -82,6 +72,7 @@ void AVLTree::Node::erase(const Key &key) {
                 }
             }
             delete this;
+            return;
         } else if (left == nullptr) {
             if (parent != nullptr) {
                 if (parent->left == this) {
@@ -92,6 +83,7 @@ void AVLTree::Node::erase(const Key &key) {
             }
             right->parent = parent;
             delete this;
+            return;
         } else if (right == nullptr) {
             if (parent != nullptr) {
                 if (parent->left == this) {
@@ -102,6 +94,7 @@ void AVLTree::Node::erase(const Key &key) {
             }
             left->parent = parent;
             delete this;
+            return;
         } else {
             Node *next = right;
             while (next->left != nullptr) {
@@ -111,13 +104,7 @@ void AVLTree::Node::erase(const Key &key) {
             next->erase(next->keyValuePair.first);
         }
     }
-    if (flag) {
-        m_height = 1 + std::max(
-                left == nullptr ? 0 : left->m_height,
-                right == nullptr ? 0 : right->m_height
-        );
-        balance();
-    }
+    balance();
 }
 
 bool AVLTree::Node::operator==(const AVLTree::Node &other) const {
@@ -138,51 +125,44 @@ void AVLTree::Node::output_node(const std::string &prefix, const AVLTree::Node *
 }
 
 void AVLTree::Node::small_left_rotation() {
-    Node *new_root = right;
-    Node *new_left = new Node(keyValuePair.first, keyValuePair.second, this, left, new_root->left);
-    new_root->left = new_left;
-    if (new_left->left != nullptr) {
-        new_left->left->parent = new_left;
-    }
-    keyValuePair = new_root->keyValuePair;
-    right = new_root->right;
+    std::pair<Key, Value> copy = right->keyValuePair;
+    right->keyValuePair = keyValuePair;
+    keyValuePair = copy;
+    Node *copy_right = right;
+    right = right->right;
     if (right != nullptr) {
         right->parent = this;
     }
-    left = new_left;
-    new_left->parent = this;
-    m_height = 1 + std::max(
-            left == nullptr ? 0 : left->m_height,
-            right == nullptr ? 0 : right->m_height
-    );
-    new_root->m_height = 1 + std::max(
-            new_root->left == nullptr ? 0 : new_root->left->m_height,
-            new_root->right == nullptr ? 0 : new_root->right->m_height
-    );
+    copy_right->right = copy_right->left;
+    copy_right->left = left;
+    if (left != nullptr) {
+        left->parent = copy_right;
+    }
+    left = copy_right;
+    left->parent = this;
+
+    update_height();
 }
 
 void AVLTree::Node::small_right_rotation() {
-    Node *new_root = left;
-    Node *new_right = new Node(keyValuePair.first, keyValuePair.second, this, new_root->right, right);
-    new_root->right = new_right;
-    if (new_right->right != nullptr) {
-        new_right->right->parent = new_right;
-    }
-    keyValuePair = new_root->keyValuePair;
-    left = new_root->left;
+    std::pair<Key, Value> copy = left->keyValuePair;
+    left->keyValuePair = keyValuePair;
+    keyValuePair = copy;
+    Node *copy_left = left;
+    left = left->left;
     if (left != nullptr) {
         left->parent = this;
     }
-    right = new_right;
-    new_right->parent = this;
-    m_height = 1 + std::max(
-            left == nullptr ? 0 : left->m_height,
-            right == nullptr ? 0 : right->m_height
-    );
-    new_root->m_height = 1 + std::max(
-            new_root->left == nullptr ? 0 : new_root->left->m_height,
-            new_root->right == nullptr ? 0 : new_root->right->m_height
-    );
+    copy_left->left = copy_left->right;
+    copy_left->right = right;
+    if (right != nullptr) {
+        right->parent = copy_left;
+    }
+    right = copy_left;
+    right->parent = this;
+
+    update_height();
+
 }
 
 void AVLTree::Node::big_left_rotation() {
@@ -195,10 +175,33 @@ void AVLTree::Node::big_right_rotation() {
     small_right_rotation();
 }
 
+void AVLTree::Node::update_height() {
+    m_height = 1 + std::max(
+            left == nullptr ? 0 : left->m_height,
+            right == nullptr ? 0 : right->m_height
+    );
+    if (left != nullptr) {
+        left->m_height = 1 + std::max(
+                left->left == nullptr ? 0 : left->left->m_height,
+                left->right == nullptr ? 0 : left->right->m_height
+        );
+    }
+    if (right != nullptr) {
+        right->m_height = 1 + std::max(
+                right->left == nullptr ? 0 : right->left->m_height,
+                right->right == nullptr ? 0 : right->right->m_height
+        );
+    }
+}
+
+
 void AVLTree::Node::balance() {
+    update_height();
+
     int left_height = left == nullptr ? 0 : left->m_height;
     int right_height = right == nullptr ? 0 : right->m_height;
     if (left_height - right_height > 1) {
+        left->update_height();
         int left_left_height = left->left == nullptr ? 0 : left->left->m_height;
         int left_right_height = left->right == nullptr ? 0 : left->right->m_height;
         if (left_left_height - left_right_height > 0) {
@@ -207,6 +210,7 @@ void AVLTree::Node::balance() {
             big_right_rotation();
         }
     } else if (right_height - left_height > 1) {
+        right->update_height();
         int right_left_height = right->left == nullptr ? 0 : right->left->m_height;
         int right_right_height = right->right == nullptr ? 0 : right->right->m_height;
         if (right_right_height - right_left_height > 0) {
@@ -240,8 +244,7 @@ AVLTree &AVLTree::operator=(const AVLTree &other) {
     return *this;
 }
 
-AVLTree::AVLTree(AVLTree &&other)
-noexcept {
+AVLTree::AVLTree(AVLTree &&other) noexcept {
     _root = other._root;
     other._root = nullptr;
 }
@@ -257,7 +260,23 @@ AVLTree &AVLTree::operator=(AVLTree &&other) noexcept {
 }
 
 AVLTree::~AVLTree() {
-    delete _root;
+    if (_root == nullptr) {
+        return;
+    }
+    std::vector<Node *> stack;
+    stack.push_back(_root);
+    while (!stack.empty()) {
+        Node *node = stack.back();
+        stack.pop_back();
+        if (node->left != nullptr) {
+            stack.push_back(node->left);
+        }
+        if (node->right != nullptr) {
+            stack.push_back(node->right);
+        }
+        delete node;
+    }
+
 }
 
 AVLTree::Iterator::Iterator(AVLTree::Node *node) {
@@ -405,9 +424,27 @@ void AVLTree::insert(const Key &key, const Value &value) {
 
 
 void AVLTree::erase(const Key &key) {
-    while (this->find(key)->first == key) {
+    Iterator it = this->find(key);
+    Iterator root_it(_root);
+    while (_root != nullptr && it->first == key) {
         _size--;
-        _root->erase(key);
+        if (it == root_it && (_root->left == nullptr || _root->right == nullptr)) {
+            Node *to_del = _root;
+            if (_root->left != nullptr) {
+                _root = _root->left;
+                _root->parent = nullptr;
+            } else if (_root->right != nullptr) {
+                _root = _root->right;
+                _root->parent = nullptr;
+            } else {
+                _root = nullptr;
+            }
+            root_it = Iterator(_root);
+            delete to_del;
+        } else {
+            _root->erase(key);
+        }
+        it = this->find(key);
     }
 }
 
@@ -572,17 +609,37 @@ void AVLTree::output_tree() {
     _root->output_node("", _root, false);
 }
 
+//int main() {
+//    AVLTree tree;
+//    // make vector int of 47 27 93 18 36 104 9 20 32 38 63 75 97 109 4 11 18 21 37 42 57 65 74 79 95 98 107 111 3 5 10 14 20 36 42 48 59 65 65 73 74 77 87 98 99 107 109 111 112 5 15 55 57 65 69 72 74 75 78 106 111 112 122 54
+//    std::vector<int> v = {47, 27, 93, 18, 36, 104, 9, 20, 32, 38, 63, 75, 97, 109, 4, 11, 18, 21, 37, 42, 57, 65, 74,
+//                          79, 95, 98, 107, 111, 3, 5, 10, 14, 20, 36, 42, 48, 59, 65, 65, 73, 74, 77, 87, 98, 99, 107,
+//                          109, 111, 112, 5, 15, 55, 57, 65, 69, 72, 74, 75, 78, 106, 111, 112, 122, 54};
+//
+//    std::sort(v.begin(), v.end());
+//    for (int i = 0; i < v.size(); i++) {
+////        std::cout << i << " " << std::endl;
+//        tree.insert(v[i], 1);
+//    }
+//    tree.output_tree();
 
-int main() {
-    AVLTree tree;
-    tree.insert(4, 1);
-    tree.insert(2, 1);
-    tree.insert(6, 1);
-    tree.insert(8, 1);
+//    tree.erase(89);
 
-    tree.output_tree();
+//    tree.output_tree();
+//
+//    tree.erase(92);
+//
+//    tree.output_tree();
 
-    tree.erase(2);
-
-    tree.output_tree();
-}
+//    tree.insert(1, 1);
+//    tree.insert(2, 1);
+//    tree.insert(3, 1);
+//    tree.insert(1, 1);
+//    tree.insert(1, 0);
+//
+//    tree.output_tree();
+//
+//    tree.erase(1);
+//
+//    tree.output_tree();
+//}
