@@ -430,33 +430,39 @@ BinarySearchTree::equalRange(const Key &key) const {
 }
 
 BinarySearchTree::ConstIterator BinarySearchTree::min(const Key &key) const {
-    ConstIterator it = find(key);
-    if (it == cbegin()) {
-        return it;
+    Node *node = _root;
+    while (node != nullptr) {
+        if (key < node->keyValuePair.first) {
+            node = node->left;
+        } else if (key > node->keyValuePair.first) {
+            node = node->right;
+        } else {
+            break;
+        }
     }
-    ConstIterator it_tmp = it;
-    it_tmp--;
-    ConstIterator begin_it = cbegin();
-    while (it_tmp->first == key && it_tmp != begin_it) {
-        it--;
-        it_tmp--;
+    while (node->left != nullptr) {
+        node = node->left;
     }
-    return it;
+
+    return ConstIterator(node);
 }
 
 BinarySearchTree::ConstIterator BinarySearchTree::max(const Key &key) const {
-    ConstIterator it = find(key);
-    if (it == cend()) {
-        return it;
+    Node *node = _root;
+    while (node != nullptr) {
+        if (key < node->keyValuePair.first) {
+            node = node->left;
+        } else if (key > node->keyValuePair.first) {
+            node = node->right;
+        } else {
+            break;
+        }
     }
-    ConstIterator it_tmp = it;
-    it_tmp++;
-    ConstIterator end_it = cend();
-    while (it_tmp->first == key && it_tmp != end_it) {
-        it++;
-        it_tmp++;
+    while (node->right != nullptr) {
+        node = node->right;
     }
-    return it;
+
+    return ConstIterator(node);
 }
 
 BinarySearchTree::Iterator BinarySearchTree::begin() {
@@ -510,3 +516,4 @@ size_t BinarySearchTree::size() const {
 void BinarySearchTree::output_tree() {
     _root->output_node("", _root, false);
 }
+

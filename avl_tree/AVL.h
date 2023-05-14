@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <cstdint>
+#include <iostream>
 
 using Key = uint32_t;
 using Value = double;
@@ -9,7 +10,7 @@ using Value = double;
 /*!
     Имплементация бинарного дерева поиска
 */
-class AVLTree {
+class BinarySearchTree {
     struct Node {
         Node(Key key,
              Value value,
@@ -48,20 +49,20 @@ class AVLTree {
 
 public:
     //! Конструктор по умолчанию
-    AVLTree() = default;
+    BinarySearchTree() = default;
 
     //! Копирование
-    explicit AVLTree(const AVLTree &other);
+    explicit BinarySearchTree(const BinarySearchTree &other);
 
-    AVLTree &operator=(const AVLTree &other);
+    BinarySearchTree &operator=(const BinarySearchTree &other);
 
     //! Перемещение
-    explicit AVLTree(AVLTree &&other) noexcept;
+    explicit BinarySearchTree(BinarySearchTree &&other) noexcept;
 
-    AVLTree &operator=(AVLTree &&other) noexcept;
+    BinarySearchTree &operator=(BinarySearchTree &&other) noexcept;
 
     //! Деструктор
-    ~AVLTree();
+    ~BinarySearchTree();
 
     /*!
         Итератор бинарного дерева поиска

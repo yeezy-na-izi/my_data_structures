@@ -3,12 +3,12 @@
 #include <iostream>
 
 
-AVLTree::Node::Node(Key key, Value value, Node *parent, Node *left, Node *right)
+BinarySearchTree::Node::Node(Key key, Value value, Node *parent, Node *left, Node *right)
         : keyValuePair(key, value), parent(parent), left(left), right(right),
           m_height(1 + std::max(left == nullptr ? 0 : left->m_height, right == nullptr ? 0 : right->m_height)) {}
 
 
-AVLTree::Node::Node(const AVLTree::Node &other) {
+BinarySearchTree::Node::Node(const BinarySearchTree::Node &other) {
     keyValuePair = other.keyValuePair;
     parent = other.parent;
     m_height = other.m_height;
@@ -24,7 +24,7 @@ AVLTree::Node::Node(const AVLTree::Node &other) {
     }
 }
 
-void AVLTree::Node::insert(const Key &key, const Value &value) {
+void BinarySearchTree::Node::insert(const Key &key, const Value &value) {
     if (key < keyValuePair.first) {
         if (left == nullptr) {
             left = new Node(key, value, this);
@@ -53,7 +53,7 @@ void AVLTree::Node::insert(const Key &key, const Value &value) {
     balance();
 }
 
-void AVLTree::Node::erase(const Key &key) {
+void BinarySearchTree::Node::erase(const Key &key) {
     if (key < keyValuePair.first) {
         if (left != nullptr) {
             left->erase(key);
@@ -107,12 +107,12 @@ void AVLTree::Node::erase(const Key &key) {
     balance();
 }
 
-bool AVLTree::Node::operator==(const AVLTree::Node &other) const {
+bool BinarySearchTree::Node::operator==(const BinarySearchTree::Node &other) const {
     return keyValuePair == other.keyValuePair && parent == other.parent && left == other.left &&
            right == other.right;
 }
 
-void AVLTree::Node::output_node(const std::string &prefix, const AVLTree::Node *node, bool isLeft) {
+void BinarySearchTree::Node::output_node(const std::string &prefix, const BinarySearchTree::Node *node, bool isLeft) {
     if (node != nullptr) {
         std::cout << prefix;
         std::cout << (isLeft ? "├──" : "└──");
@@ -124,7 +124,7 @@ void AVLTree::Node::output_node(const std::string &prefix, const AVLTree::Node *
     }
 }
 
-void AVLTree::Node::small_left_rotation() {
+void BinarySearchTree::Node::small_left_rotation() {
     std::pair<Key, Value> copy = right->keyValuePair;
     right->keyValuePair = keyValuePair;
     keyValuePair = copy;
@@ -144,7 +144,7 @@ void AVLTree::Node::small_left_rotation() {
     update_height();
 }
 
-void AVLTree::Node::small_right_rotation() {
+void BinarySearchTree::Node::small_right_rotation() {
     std::pair<Key, Value> copy = left->keyValuePair;
     left->keyValuePair = keyValuePair;
     keyValuePair = copy;
@@ -165,17 +165,17 @@ void AVLTree::Node::small_right_rotation() {
 
 }
 
-void AVLTree::Node::big_left_rotation() {
+void BinarySearchTree::Node::big_left_rotation() {
     right->small_right_rotation();
     small_left_rotation();
 }
 
-void AVLTree::Node::big_right_rotation() {
+void BinarySearchTree::Node::big_right_rotation() {
     left->small_left_rotation();
     small_right_rotation();
 }
 
-void AVLTree::Node::update_height() {
+void BinarySearchTree::Node::update_height() {
     m_height = 1 + std::max(
             left == nullptr ? 0 : left->m_height,
             right == nullptr ? 0 : right->m_height
@@ -195,7 +195,7 @@ void AVLTree::Node::update_height() {
 }
 
 
-void AVLTree::Node::balance() {
+void BinarySearchTree::Node::balance() {
     update_height();
 
     int left_height = left == nullptr ? 0 : left->m_height;
@@ -221,45 +221,51 @@ void AVLTree::Node::balance() {
     }
 }
 
-AVLTree::AVLTree(
-        const AVLTree &other) {
+BinarySearchTree::BinarySearchTree(
+        const BinarySearchTree &other) {
     if (other._root == nullptr) {
         _root = nullptr;
     } else {
         _root = new Node(*other._root);
     }
+    _size = other._size;
 }
 
 
-AVLTree &AVLTree::operator=(const AVLTree &other) {
+BinarySearchTree &BinarySearchTree::operator=(const BinarySearchTree &other) {
     if (this == &other) {
         return *this;
     }
-    this->~AVLTree();
+    this->~BinarySearchTree();
     if (other._root == nullptr) {
         _root = nullptr;
     } else {
         _root = new Node(*other._root);
     }
+    _size = other._size;
     return *this;
 }
 
-AVLTree::AVLTree(AVLTree &&other) noexcept {
+BinarySearchTree::BinarySearchTree(BinarySearchTree &&other) noexcept {
     _root = other._root;
+    _size = other._size;
     other._root = nullptr;
+    other._size = 0;
 }
 
-AVLTree &AVLTree::operator=(AVLTree &&other) noexcept {
+BinarySearchTree &BinarySearchTree::operator=(BinarySearchTree &&other) noexcept {
     if (this == &other) {
         return *this;
     }
-    this->~AVLTree();
+    this->~BinarySearchTree();
     _root = other._root;
+    _size = other._size;
     other._root = nullptr;
+    other._size = 0;
     return *this;
 }
 
-AVLTree::~AVLTree() {
+BinarySearchTree::~BinarySearchTree() {
     if (_root == nullptr) {
         return;
     }
@@ -276,30 +282,29 @@ AVLTree::~AVLTree() {
         }
         delete node;
     }
-
 }
 
-AVLTree::Iterator::Iterator(AVLTree::Node *node) {
+BinarySearchTree::Iterator::Iterator(BinarySearchTree::Node *node) {
     _node = node;
 }
 
-std::pair<Key, Value> &AVLTree::Iterator::operator*() {
+std::pair<Key, Value> &BinarySearchTree::Iterator::operator*() {
     return _node->keyValuePair;
 }
 
-const std::pair<Key, Value> &AVLTree::Iterator::operator*() const {
+const std::pair<Key, Value> &BinarySearchTree::Iterator::operator*() const {
     return _node->keyValuePair;
 }
 
-std::pair<Key, Value> *AVLTree::Iterator::operator->() {
+std::pair<Key, Value> *BinarySearchTree::Iterator::operator->() {
     return &_node->keyValuePair;
 }
 
-const std::pair<Key, Value> *AVLTree::Iterator::operator->() const {
+const std::pair<Key, Value> *BinarySearchTree::Iterator::operator->() const {
     return &_node->keyValuePair;
 }
 
-AVLTree::Iterator AVLTree::Iterator::operator++() {
+BinarySearchTree::Iterator BinarySearchTree::Iterator::operator++() {
     if (_node->right != nullptr) {
         _node = _node->right;
         while (_node->left != nullptr) {
@@ -314,13 +319,13 @@ AVLTree::Iterator AVLTree::Iterator::operator++() {
     return *this;
 }
 
-AVLTree::Iterator AVLTree::Iterator::operator++(int) {
+BinarySearchTree::Iterator BinarySearchTree::Iterator::operator++(int) {
     Iterator tmp = *this;
     ++(*this);
     return tmp;
 }
 
-AVLTree::Iterator AVLTree::Iterator::operator--() {
+BinarySearchTree::Iterator BinarySearchTree::Iterator::operator--() {
     if (_node->left != nullptr) {
         _node = _node->left;
         while (_node->right != nullptr) {
@@ -335,35 +340,35 @@ AVLTree::Iterator AVLTree::Iterator::operator--() {
     return *this;
 }
 
-AVLTree::Iterator AVLTree::Iterator::operator--(int) {
+BinarySearchTree::Iterator BinarySearchTree::Iterator::operator--(int) {
     Iterator tmp = *this;
     --(*this);
     return tmp;
 }
 
-bool AVLTree::Iterator::operator==(const AVLTree::Iterator &other) const {
+bool BinarySearchTree::Iterator::operator==(const BinarySearchTree::Iterator &other) const {
     return _node == other._node;
 }
 
-bool AVLTree::Iterator::operator!=(const AVLTree::Iterator &other) const {
+bool BinarySearchTree::Iterator::operator!=(const BinarySearchTree::Iterator &other) const {
     return !(*this == other);
 }
 
 
-AVLTree::ConstIterator::ConstIterator(
-        const AVLTree::Node *node) {
+BinarySearchTree::ConstIterator::ConstIterator(
+        const BinarySearchTree::Node *node) {
     _node = node;
 }
 
-const std::pair<Key, Value> &AVLTree::ConstIterator::operator*() const {
+const std::pair<Key, Value> &BinarySearchTree::ConstIterator::operator*() const {
     return _node->keyValuePair;
 }
 
-const std::pair<Key, Value> *AVLTree::ConstIterator::operator->() const {
+const std::pair<Key, Value> *BinarySearchTree::ConstIterator::operator->() const {
     return &_node->keyValuePair;
 }
 
-AVLTree::ConstIterator AVLTree::ConstIterator::operator++() {
+BinarySearchTree::ConstIterator BinarySearchTree::ConstIterator::operator++() {
     if (_node->right != nullptr) {
         _node = _node->right;
         while (_node->left != nullptr) {
@@ -378,13 +383,13 @@ AVLTree::ConstIterator AVLTree::ConstIterator::operator++() {
     return *this;
 }
 
-AVLTree::ConstIterator AVLTree::ConstIterator::operator++(int) {
+BinarySearchTree::ConstIterator BinarySearchTree::ConstIterator::operator++(int) {
     ConstIterator tmp = *this;
     ++(*this);
     return tmp;
 }
 
-AVLTree::ConstIterator AVLTree::ConstIterator::operator--() {
+BinarySearchTree::ConstIterator BinarySearchTree::ConstIterator::operator--() {
     if (_node->left != nullptr) {
         _node = _node->left;
         while (_node->right != nullptr) {
@@ -399,21 +404,21 @@ AVLTree::ConstIterator AVLTree::ConstIterator::operator--() {
     return *this;
 }
 
-AVLTree::ConstIterator AVLTree::ConstIterator::operator--(int) {
+BinarySearchTree::ConstIterator BinarySearchTree::ConstIterator::operator--(int) {
     ConstIterator tmp = *this;
     --(*this);
     return tmp;
 }
 
-bool AVLTree::ConstIterator::operator==(const AVLTree::ConstIterator &other) const {
+bool BinarySearchTree::ConstIterator::operator==(const BinarySearchTree::ConstIterator &other) const {
     return _node == other._node;
 }
 
-bool AVLTree::ConstIterator::operator!=(const AVLTree::ConstIterator &other) const {
+bool BinarySearchTree::ConstIterator::operator!=(const BinarySearchTree::ConstIterator &other) const {
     return !(*this == other);
 }
 
-void AVLTree::insert(const Key &key, const Value &value) {
+void BinarySearchTree::insert(const Key &key, const Value &value) {
     _size++;
     if (_root == nullptr) {
         _root = new Node(key, value);
@@ -423,7 +428,7 @@ void AVLTree::insert(const Key &key, const Value &value) {
 }
 
 
-void AVLTree::erase(const Key &key) {
+void BinarySearchTree::erase(const Key &key) {
     Iterator it = this->find(key);
     Iterator root_it(_root);
     while (_root != nullptr && it->first == key) {
@@ -448,7 +453,7 @@ void AVLTree::erase(const Key &key) {
     }
 }
 
-AVLTree::Iterator AVLTree::find(const Key &key) {
+BinarySearchTree::Iterator BinarySearchTree::find(const Key &key) {
     Node *node = _root;
     while (node != nullptr) {
         if (key < node->keyValuePair.first) {
@@ -465,7 +470,7 @@ AVLTree::Iterator AVLTree::find(const Key &key) {
     return Iterator(node);
 }
 
-AVLTree::ConstIterator AVLTree::find(const Key &key) const {
+BinarySearchTree::ConstIterator BinarySearchTree::find(const Key &key) const {
     Node *node = _root;
     while (node != nullptr) {
         if (key < node->keyValuePair.first) {
@@ -479,7 +484,7 @@ AVLTree::ConstIterator AVLTree::find(const Key &key) const {
     return ConstIterator(node);
 }
 
-std::pair<AVLTree::Iterator, AVLTree::Iterator> AVLTree::equalRange(const Key &key) {
+std::pair<BinarySearchTree::Iterator, BinarySearchTree::Iterator> BinarySearchTree::equalRange(const Key &key) {
     Iterator it_start = find(key);
     if (it_start == end()) {
         return std::make_pair(it_start, it_start);
@@ -499,11 +504,12 @@ std::pair<AVLTree::Iterator, AVLTree::Iterator> AVLTree::equalRange(const Key &k
         it_end++;
         it_tmp++;
     }
+    it_end++;
     return std::make_pair(it_start, it_end);
 }
 
-std::pair<AVLTree::ConstIterator, AVLTree::ConstIterator>
-AVLTree::equalRange(const Key &key) const {
+std::pair<BinarySearchTree::ConstIterator, BinarySearchTree::ConstIterator>
+BinarySearchTree::equalRange(const Key &key) const {
     ConstIterator it_start = find(key);
     if (it_start == cend()) {
         return std::make_pair(it_start, it_start);
@@ -527,37 +533,43 @@ AVLTree::equalRange(const Key &key) const {
     return std::make_pair(it_start, it_end);
 }
 
-AVLTree::ConstIterator AVLTree::min(const Key &key) const {
-    ConstIterator it = find(key);
-    if (it == cend()) {
-        return it;
+BinarySearchTree::ConstIterator BinarySearchTree::min(const Key &key) const {
+    Node *node = _root;
+    while (node != nullptr) {
+        if (key < node->keyValuePair.first) {
+            node = node->left;
+        } else if (key > node->keyValuePair.first) {
+            node = node->right;
+        } else {
+            break;
+        }
     }
-    ConstIterator it_tmp = it;
-    it_tmp--;
-    ConstIterator begin_it = cbegin();
-    while (it_tmp->first == key && it_tmp != begin_it) {
-        it--;
-        it_tmp--;
+    while (node->left != nullptr) {
+        node = node->left;
     }
-    return it;
+
+    return ConstIterator(node);
 }
 
-AVLTree::ConstIterator AVLTree::max(const Key &key) const {
-    ConstIterator it = find(key);
-    if (it == cend()) {
-        return it;
+BinarySearchTree::ConstIterator BinarySearchTree::max(const Key &key) const {
+    Node *node = _root;
+    while (node != nullptr) {
+        if (key < node->keyValuePair.first) {
+            node = node->left;
+        } else if (key > node->keyValuePair.first) {
+            node = node->right;
+        } else {
+            break;
+        }
     }
-    ConstIterator it_tmp = it;
-    it_tmp++;
-    ConstIterator end_it = cend();
-    while (it_tmp->first == key && it_tmp != end_it) {
-        it++;
-        it_tmp++;
+    while (node->right != nullptr) {
+        node = node->right;
     }
-    return it;
+
+    return ConstIterator(node);
 }
 
-AVLTree::Iterator AVLTree::begin() {
+BinarySearchTree::Iterator BinarySearchTree::begin() {
     Node *node = _root;
     if (node == nullptr) {
         return Iterator(node);
@@ -568,7 +580,7 @@ AVLTree::Iterator AVLTree::begin() {
     return Iterator(node);
 }
 
-AVLTree::ConstIterator AVLTree::cbegin() const {
+BinarySearchTree::ConstIterator BinarySearchTree::cbegin() const {
     Node *node = _root;
     if (node == nullptr) {
         return ConstIterator(node);
@@ -579,7 +591,7 @@ AVLTree::ConstIterator AVLTree::cbegin() const {
     return ConstIterator(node);
 }
 
-AVLTree::Iterator AVLTree::end() {
+BinarySearchTree::Iterator BinarySearchTree::end() {
     Node *node = _root;
     if (node == nullptr) {
         return Iterator(node);
@@ -590,7 +602,7 @@ AVLTree::Iterator AVLTree::end() {
     return Iterator(node);
 }
 
-AVLTree::ConstIterator AVLTree::cend() const {
+BinarySearchTree::ConstIterator BinarySearchTree::cend() const {
     Node *node = _root;
     if (node == nullptr) {
         return ConstIterator(node);
@@ -601,45 +613,10 @@ AVLTree::ConstIterator AVLTree::cend() const {
     return ConstIterator(node);
 }
 
-size_t AVLTree::size() const {
+size_t BinarySearchTree::size() const {
     return _size;
 }
 
-void AVLTree::output_tree() {
+void BinarySearchTree::output_tree() {
     _root->output_node("", _root, false);
 }
-
-//int main() {
-//    AVLTree tree;
-//    // make vector int of 47 27 93 18 36 104 9 20 32 38 63 75 97 109 4 11 18 21 37 42 57 65 74 79 95 98 107 111 3 5 10 14 20 36 42 48 59 65 65 73 74 77 87 98 99 107 109 111 112 5 15 55 57 65 69 72 74 75 78 106 111 112 122 54
-//    std::vector<int> v = {47, 27, 93, 18, 36, 104, 9, 20, 32, 38, 63, 75, 97, 109, 4, 11, 18, 21, 37, 42, 57, 65, 74,
-//                          79, 95, 98, 107, 111, 3, 5, 10, 14, 20, 36, 42, 48, 59, 65, 65, 73, 74, 77, 87, 98, 99, 107,
-//                          109, 111, 112, 5, 15, 55, 57, 65, 69, 72, 74, 75, 78, 106, 111, 112, 122, 54};
-//
-//    std::sort(v.begin(), v.end());
-//    for (int i = 0; i < v.size(); i++) {
-////        std::cout << i << " " << std::endl;
-//        tree.insert(v[i], 1);
-//    }
-//    tree.output_tree();
-
-//    tree.erase(89);
-
-//    tree.output_tree();
-//
-//    tree.erase(92);
-//
-//    tree.output_tree();
-
-//    tree.insert(1, 1);
-//    tree.insert(2, 1);
-//    tree.insert(3, 1);
-//    tree.insert(1, 1);
-//    tree.insert(1, 0);
-//
-//    tree.output_tree();
-//
-//    tree.erase(1);
-//
-//    tree.output_tree();
-//}
