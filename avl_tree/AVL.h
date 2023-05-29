@@ -10,7 +10,7 @@ using Value = double;
 /*!
     Имплементация бинарного дерева поиска
 */
-class BinarySearchTree {
+class AvlTree{
     struct Node {
         Node(Key key,
              Value value,
@@ -49,20 +49,20 @@ class BinarySearchTree {
 
 public:
     //! Конструктор по умолчанию
-    BinarySearchTree() = default;
+    AvlTree() = default;
 
     //! Копирование
-    explicit BinarySearchTree(const BinarySearchTree &other);
+    explicit AvlTree(const AvlTree&other);
 
-    BinarySearchTree &operator=(const BinarySearchTree &other);
+    AvlTree&operator=(const AvlTree&other);
 
     //! Перемещение
-    explicit BinarySearchTree(BinarySearchTree &&other) noexcept;
+    explicit AvlTree(AvlTree&&other) noexcept;
 
-    BinarySearchTree &operator=(BinarySearchTree &&other) noexcept;
+    AvlTree&operator=(AvlTree&&other) noexcept;
 
     //! Деструктор
-    ~BinarySearchTree();
+    ~AvlTree();
 
     /*!
         Итератор бинарного дерева поиска
