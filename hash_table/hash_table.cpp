@@ -26,6 +26,12 @@ void HashTable::insert(const KeyType &key, const ValueType &value) {
         }
         table = new_table;
     }
+    for (auto &pair : table[hash_function(key)]) {
+        if (pair.first == key) {
+            pair.second = value;
+            return;
+        }
+    }
     table[hash_function(key)].emplace_back(key, value);
     _filled++;
 }
