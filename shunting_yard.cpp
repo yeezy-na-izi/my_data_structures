@@ -17,12 +17,6 @@ void change(stack<char> &op, stack<int> &num) {
         return;
     }
 
-    if (op.size() >= 2 and op.top() == '-' and op[op.size() - 2] == '-') {
-        num.top() *= -1;
-        op.pop();
-        return;
-    }
-
     int b = num.top();
     num.pop();
     int a = num.top();
